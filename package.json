@@ -7,6 +7,13 @@
     "build:client": "npm run build --prefix client",
     "build:server": "npm run build --prefix server",
     "build": "npm run build:client && npm run build:server",
-    "start": "npm start --prefix server"
+    "start": "npm start --prefix server",
+    "test:client": "npm run test --prefix client",
+    "test:server": "npm run test --prefix server",
+    "test": "npm run test:server && npm run test:client",
+    "test:coverage": "npm run coverage --prefix server && npm run coverage --prefix client"
+  },
+  "dependencies": {
+    "playwright": "^1.61.1"
   }
 }

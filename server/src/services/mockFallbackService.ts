@@ -210,6 +210,11 @@ export const mockFallbackService = {
     // Check if Gate C density is high or a scenario is active
     const gateC = snapshot.gates?.find((g: any) => g.id === 'gate-c');
     const isSurge = snapshot.activeScenario === 'gate-c-surge' || (gateC && gateC.crowdDensity >= 70);
+    console.log('[MockOps] analyzeOperations received:', {
+      activeScenario: snapshot.activeScenario,
+      gateC_density: gateC?.crowdDensity,
+      isSurge
+    });
     const isMedical = snapshot.activeScenario === 'medical-emergency';
 
     if (isSurge) {

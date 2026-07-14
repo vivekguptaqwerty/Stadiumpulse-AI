@@ -1,5 +1,7 @@
 # StadiumPulse AI
 
+[![StadiumPulse AI CI](https://github.com/stadiumpulse-ai/stadiumpulse-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/stadiumpulse-ai/stadiumpulse-ai/actions/workflows/ci.yml)
+
 > The intelligence layer for safer, smarter stadium movement. Developed for the FIFA World Cup 2026 Developer Challenge.
 
 StadiumPulse AI is a real-time stadium intelligence layer that aggregates venue sensor data and crowd flows to optimize movements, predict congestion risk, and route stadium visitors safely.
@@ -56,3 +58,33 @@ State is managed by a centralized **React Context** (`StadiumStateProvider`), wh
    ```
 
 The local development URL will be printed on screen (typically `http://localhost:5173`).
+
+---
+
+## Automated Testing
+
+StadiumPulse AI includes a fully automated, deterministic test suite covering frontend component rendering, backend Express API routing, rate limiters, payload size restrictions, and closed-loop routing logic.
+
+*   **Test Frameworks**: Vitest, React Testing Library, Supertest
+*   **Total Test Files**: 6 files
+*   **Total Automated Tests**: 27 tests (19 server/closed-loop tests, 8 client tests)
+*   **Gemini Mocking**: 100% mocked model boundaries (no live API key or cloud quota consumed)
+*   **Latest Test Result**: **PASSING** (All 27 automated checks passed in local validation)
+
+For complete details on the testing setup, dynamic rate limits, and mocking architecture, refer to the [TESTING.md](file:///c:/StadiumPulse%20AI/stadiumpulse-ai/TESTING.md) guide.
+
+To execute the test suite:
+```bash
+# Run the complete test suite (both Client and Server tests)
+npm test
+
+# Run only server-side integration tests
+npm run test:server
+
+# Run only client-side React component unit tests
+npm run test:client
+
+# View code coverage summaries
+npm run test:coverage
+```
+

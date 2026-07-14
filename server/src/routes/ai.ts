@@ -5,14 +5,10 @@ import { stadiumDataService } from '../services/stadiumDataService';
 
 const router = Router();
 
-// Rate limiter constants (supporting env overrides with safe defaults)
-const fanLimitMax = Number(process.env.FAN_AI_RATE_LIMIT_MAX) || 20;
-const opsLimitMax = Number(process.env.OPS_AI_RATE_LIMIT_MAX) || 10;
-
 // Rate Limiters: 429 JSON responses
 const fanLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: fanLimitMax,
+  max: () => Number(process.env.FAN_AI_RATE_LIMIT_MAX) || 20,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
@@ -26,7 +22,7 @@ const fanLimiter = rateLimit({
 
 const opsLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: opsLimitMax,
+  max: () => Number(process.env.OPS_AI_RATE_LIMIT_MAX) || 10,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {

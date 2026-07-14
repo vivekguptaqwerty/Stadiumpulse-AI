@@ -73,9 +73,13 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // Listen on the port assigned by Cloud Run, binding to 0.0.0.0 interface
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`========================================`);
-  console.log(` StadiumPulse AI Server Online`);
-  console.log(` Running on port: http://0.0.0.0:${PORT}`);
-  console.log(`========================================`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`========================================`);
+    console.log(` StadiumPulse AI Server Online`);
+    console.log(` Running on port: http://0.0.0.0:${PORT}`);
+    console.log(`========================================`);
+  });
+}
+
+export { app };

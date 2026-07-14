@@ -1,0 +1,49 @@
+name: StadiumPulse AI CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install Root Dependencies
+      run: npm ci
+
+    - name: Install Client Dependencies
+      run: npm ci --prefix client
+
+    - name: Install Server Dependencies
+      run: npm ci --prefix server
+
+    - name: Run Client TypeScript & Lint Checks
+      run: |
+        npm run build --prefix client
+
+    - name: Run Server TypeScript Checks
+      run: |
+        npm run build --prefix server
+
+    - name: Run Automated Test Suite
+      run: npm test
+      env:
+        NODE_ENV: test
+        GEMINI_MODEL: gemini-3.5-flash
+        FAN_AI_RATE_LIMIT_MAX: 1000
+        OPS_AI_RATE_LIMIT_MAX: 1000
+
+    - name: Build Production Application (Single-Service)
+      run: npm run build
