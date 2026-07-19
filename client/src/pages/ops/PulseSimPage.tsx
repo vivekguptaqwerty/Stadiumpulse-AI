@@ -101,24 +101,24 @@ const PulseSimPage: React.FC = () => {
           {/* Status Display Card */}
           <div className="w-full md:w-64 bg-slate-950 border border-slate-850 p-4 rounded-xl space-y-2.5 font-mono text-xs">
             <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-              <span className="text-slate-500">Twin Clock:</span>
+              <span className="text-slate-400">Twin Clock:</span>
               <span className="text-white font-bold">{simulationTime}</span>
             </div>
             <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-              <span className="text-slate-500">Engine State:</span>
+              <span className="text-slate-400">Engine State:</span>
               <span className="text-emerald-400 font-bold flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
                 RUNNING
               </span>
             </div>
             <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-              <span className="text-slate-500">Active Scenario:</span>
+              <span className="text-slate-400">Active Scenario:</span>
               <span className="text-brand-warning font-bold text-right uppercase max-w-[120px] truncate">
                 {activeScenario.replace(/-/g, ' ')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-slate-500">Event Rate:</span>
+              <span className="text-slate-400">Event Rate:</span>
               <span className="text-slate-300 font-semibold">1.8 eps (nominal)</span>
             </div>
           </div>

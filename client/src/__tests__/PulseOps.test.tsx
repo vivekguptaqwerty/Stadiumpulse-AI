@@ -120,4 +120,32 @@ describe('PulseOps Component (Operational Dashboard)', () => {
       expect(screen.getByText('Action Plan Active')).toBeInTheDocument();
     }, { timeout: 3000 });
   });
+
+  it('supports SVG schematic zone keyboard accessibility, focus, and activation (WCAG compliant)', async () => {
+    renderComponent();
+
+    // 1. Check ARIA labels and focus attributes
+    const zoneC = screen.getByLabelText(/Zone C/i);
+    const zoneD = screen.getByLabelText(/Zone D/i);
+
+    expect(zoneC).toBeInTheDocument();
+    expect(zoneC).toHaveAttribute('role', 'button');
+    expect(zoneC).toHaveAttribute('tabindex', '0');
+
+    // 2. Press Enter to activate Zone C
+    fireEvent.keyDown(zoneC, { key: 'Enter', code: 'Enter' });
+    
+    // Check that selected zone in dashboard updates to Zone C
+    await waitFor(() => {
+      expect(screen.getByText('Zone C (North Endzone)')).toBeInTheDocument();
+    });
+
+    // 3. Press Space to activate Zone D
+    fireEvent.keyDown(zoneD, { key: ' ', code: 'Space' });
+
+    // Check that selected zone updates to Zone D
+    await waitFor(() => {
+      expect(screen.getByText('Zone D (South Endzone)')).toBeInTheDocument();
+    });
+  });
 });

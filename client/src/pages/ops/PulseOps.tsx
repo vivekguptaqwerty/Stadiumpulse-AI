@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Activity, 
@@ -48,6 +48,65 @@ const PulseOps: React.FC = () => {
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [aiProvider, setAiProvider] = useState<'gemini' | 'mock'>('gemini');
 
+  // Focus trap and restoration refs for dialog
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (showPlanModal) {
+      // Record the triggering button
+      triggerRef.current = document.activeElement as HTMLButtonElement;
+
+      // Focus the first focusable child
+      const timer = setTimeout(() => {
+        const focusable = modalRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        ) as NodeListOf<HTMLElement>;
+        if (focusable && focusable.length > 0) {
+          focusable[0].focus();
+        }
+      }, 50);
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setShowPlanModal(false);
+        }
+
+        if (e.key === 'Tab') {
+          const focusable = modalRef.current?.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          ) as NodeListOf<HTMLElement>;
+          if (focusable && focusable.length > 0) {
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+
+            if (e.shiftKey) {
+              if (document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+              }
+            } else {
+              if (document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+              }
+            }
+          }
+        }
+      };
+
+      document.addEventListener('keydown', handleKeyDown);
+      return () => {
+        clearTimeout(timer);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    } else {
+      if (triggerRef.current) {
+        triggerRef.current.focus();
+      }
+    }
+  }, [showPlanModal]);
+
   // Check AI configured status on load
   useEffect(() => {
     const checkAIStatus = async () => {
@@ -73,7 +132,7 @@ const PulseOps: React.FC = () => {
 
   const selectedZone = zones.find(z => z.id === selectedZoneId) || zones[1];
 
-  const getZoneFillClass = (status: string) => {
+  const getZoneFillClass = useCallback((status: string) => {
     switch (status) {
       case 'NORMAL':
         return 'fill-emerald-500/10 stroke-emerald-500/30 hover:fill-emerald-500/20';
@@ -86,7 +145,7 @@ const PulseOps: React.FC = () => {
       default:
         return 'fill-slate-800 stroke-slate-700';
     }
-  };
+  }, []);
 
   const getGateBadgeClass = (status: string) => {
     switch (status) {
@@ -167,7 +226,7 @@ const PulseOps: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-[#0f172a]/55 border border-slate-850 p-4 rounded-xl flex items-center justify-between shadow-sm">
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Fans in Venue</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Fans in Venue</span>
                 <span className="text-2xl font-black text-white leading-none font-mono">{fansCount.toLocaleString()}</span>
               </div>
               <div className="h-9 w-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-brand-primary">
@@ -177,7 +236,7 @@ const PulseOps: React.FC = () => {
 
             <div className="bg-[#0f172a]/55 border border-slate-850 p-4 rounded-xl flex items-center justify-between shadow-sm">
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Active Incidents</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Active Incidents</span>
                 <span className={`text-2xl font-black leading-none font-mono ${activeIncidentsCount > 0 ? 'text-brand-danger' : 'text-slate-400'}`}>
                   {activeIncidentsCount}
                 </span>
@@ -189,7 +248,7 @@ const PulseOps: React.FC = () => {
 
             <div className="bg-[#0f172a]/55 border border-slate-850 p-4 rounded-xl flex items-center justify-between shadow-sm">
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Risk Zones</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Risk Zones</span>
                 <span className={`text-2xl font-black leading-none font-mono ${riskZonesCount > 0 ? 'text-brand-warning' : 'text-slate-400'}`}>
                   {riskZonesCount} / 4
                 </span>
@@ -201,7 +260,7 @@ const PulseOps: React.FC = () => {
 
             <div className="bg-[#0f172a]/55 border border-slate-850 p-4 rounded-xl flex items-center justify-between shadow-sm">
               <div className="space-y-1">
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">AI alerts active</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">AI alerts active</span>
                 <span className={`text-2xl font-black leading-none font-mono ${aiAlertsCount > 0 ? 'text-brand-primary animate-pulse' : 'text-slate-400'}`}>
                   {aiAlertsCount}
                 </span>
@@ -219,7 +278,7 @@ const PulseOps: React.FC = () => {
             <div className="flex justify-between items-center z-10 mb-4">
               <div>
                 <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">MetLife Live Schematic Layout</h2>
-                <span className="text-[10px] text-slate-500">Click zones on the map to query structural density trends.</span>
+                <span className="text-[10px] text-slate-400">Click zones on the map to query structural density trends.</span>
               </div>
               <div className="flex items-center gap-3 text-[10px] text-slate-400 bg-slate-900/60 px-3 py-1.5 rounded border border-slate-800">
                 <div className="flex items-center gap-1">
@@ -243,71 +302,13 @@ const PulseOps: React.FC = () => {
 
             {/* Stadium Visual */}
             <div className="flex-grow flex justify-center items-center my-4 z-10">
-              <svg className="w-full max-w-[420px] aspect-square" viewBox="0 0 100 100">
-                {/* Stadium Outer Border */}
-                <circle cx="50" cy="50" r="46" fill="none" stroke="#1e293b" strokeWidth="1" />
-                
-                {/* Interactive Quadrants (Zones) */}
-                <path 
-                  onClick={() => setSelectedZoneId('zone-c')}
-                  d="M 50 50 L 50 6 A 44 44 0 0 1 94 50 Z" 
-                  className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-c')?.status || 'NORMAL')}`} 
-                  strokeWidth="0.8" 
-                />
-                
-                <path 
-                  onClick={() => setSelectedZoneId('zone-b')}
-                  d="M 50 50 L 94 50 A 44 44 0 0 1 50 94 Z" 
-                  className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-b')?.status || 'NORMAL')}`} 
-                  strokeWidth="0.8" 
-                />
-                
-                <path 
-                  onClick={() => setSelectedZoneId('zone-d')}
-                  d="M 50 50 L 50 94 A 44 44 0 0 1 6 50 Z" 
-                  className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-d')?.status || 'NORMAL')}`} 
-                  strokeWidth="0.8" 
-                />
-                
-                <path 
-                  onClick={() => setSelectedZoneId('zone-a')}
-                  d="M 50 50 L 6 50 A 44 44 0 0 1 50 6 Z" 
-                  className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-a')?.status || 'NORMAL')}`} 
-                  strokeWidth="0.8" 
-                />
-
-                {/* Gate Points */}
-                <circle cx="20" cy="20" r="2.5" fill="#020617" stroke="#3b82f6" strokeWidth="0.8" />
-                <text x="20" y="20.5" fill="#3b82f6" fontSize="2" fontWeight="bold" textAnchor="middle">GA</text>
-
-                <circle cx="80" cy="20" r="2.5" fill="#020617" stroke="#3b82f6" strokeWidth="0.8" />
-                <text x="80" y="20.5" fill="#3b82f6" fontSize="2" fontWeight="bold" textAnchor="middle">GB</text>
-
-                <circle cx="80" cy="80" r="2.8" fill="#020617" stroke="#ef4444" strokeWidth="0.8" />
-                <text x="80" y="80.5" fill="#ef4444" fontSize="2" fontWeight="bold" textAnchor="middle">GC</text>
-                {activeScenario === 'gate-c-surge' && !actionPlanApplied && (
-                  <circle cx="80" cy="80" r="4.5" fill="none" stroke="#ef4444" strokeWidth="0.5" className="animate-ping" />
-                )}
-
-                <circle cx="20" cy="80" r="2.5" fill="#020617" stroke="#10b981" strokeWidth="0.8" />
-                <text x="20" y="80.5" fill="#10b981" fontSize="2" fontWeight="bold" textAnchor="middle">GD</text>
-
-                {/* Corridor B2 */}
-                <line x1="68" y1="58" x2="78" y2="68" stroke={activeScenario === 'gate-c-surge' && !actionPlanApplied ? '#ef4444' : '#f59e0b'} strokeWidth="1.2" strokeDasharray="1.5 1" />
-                <text x="76" y="62" fill="#94a3b8" fontSize="1.8" fontWeight="bold">Corridor B2</text>
-
-                {/* Central pitch */}
-                <rect x="36" y="28" width="28" height="44" rx="1.5" fill="#020617" stroke="#475569" strokeWidth="0.8" transform="rotate(45 50 50)" />
-                <line x1="36" y1="50" x2="64" y2="50" stroke="#475569" strokeWidth="0.5" transform="rotate(45 50 50)" />
-                <circle cx="50" cy="50" r="4.5" fill="none" stroke="#475569" strokeWidth="0.5" />
-                <text x="50" y="50.8" fill="#475569" fontSize="2.2" textAnchor="middle">PITCH</text>
-
-                {/* Labels */}
-                <text x="50" y="16" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE C</text>
-                <text x="82" y="51" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE B</text>
-                <text x="50" y="87" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE D</text>
-                <text x="18" y="51" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE A</text>
-              </svg>
+              <StadiumSchematic 
+                zones={zones}
+                activeScenario={activeScenario}
+                actionPlanApplied={actionPlanApplied}
+                setSelectedZoneId={setSelectedZoneId}
+                getZoneFillClass={getZoneFillClass}
+              />
             </div>
 
             {/* Bottom Status Grid (Gates) */}
@@ -480,23 +481,7 @@ const PulseOps: React.FC = () => {
             {/* Recharts Crowd Trend Chart */}
             <div className="h-28 w-full z-10">
               <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest block mb-1">30 Min Density Trend</span>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorDensity" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="name" stroke="#475569" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#475569" fontSize={9} domain={[0, 100]} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', fontSize: '10px' }}
-                    labelStyle={{ color: '#94a3b8' }}
-                  />
-                  <Area type="monotone" dataKey="density" stroke="#3b82f6" strokeWidth={1.5} fillOpacity={1} fill="url(#colorDensity)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <CrowdTrendChart chartData={chartData} />
             </div>
           </div>
 
@@ -540,6 +525,10 @@ const PulseOps: React.FC = () => {
         {showPlanModal && recommendation && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
             <motion.div 
+              ref={modalRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -549,11 +538,12 @@ const PulseOps: React.FC = () => {
               <div className="px-6 py-4 bg-slate-950 border-b border-slate-850 flex justify-between items-center">
                 <div className="flex items-center space-x-2">
                   <Sparkles className="h-4.5 w-4.5 text-brand-primary animate-pulse" />
-                  <span className="font-bold text-white">AI Mitigation Plan</span>
+                  <span id="modal-title" className="font-bold text-white">AI Mitigation Plan</span>
                 </div>
                 <button 
                   onClick={() => setShowPlanModal(false)}
                   className="text-slate-400 hover:text-white text-sm"
+                  aria-label="Close dialog"
                 >
                   ✕
                 </button>
@@ -655,5 +645,153 @@ const PulseOps: React.FC = () => {
     </div>
   );
 };
+
+interface StadiumSchematicProps {
+  zones: any[];
+  activeScenario: string;
+  actionPlanApplied: boolean;
+  setSelectedZoneId: (id: string) => void;
+  getZoneFillClass: (status: string) => string;
+}
+
+const StadiumSchematic = React.memo(({
+  zones,
+  activeScenario,
+  actionPlanApplied,
+  setSelectedZoneId,
+  getZoneFillClass
+}: StadiumSchematicProps) => {
+  return (
+    <svg className="w-full max-w-[420px] aspect-square" viewBox="0 0 100 100">
+      {/* Stadium Outer Border */}
+      <circle cx="50" cy="50" r="46" fill="none" stroke="#1e293b" strokeWidth="1" />
+      
+      {/* Interactive Quadrants (Zones) */}
+      <path 
+        onClick={() => setSelectedZoneId('zone-c')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setSelectedZoneId('zone-c');
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Zone C (North Endzone). Status is ${(zones.find(z => z.id === 'zone-c')?.status || 'NORMAL').toLowerCase()}.`}
+        d="M 50 50 L 50 6 A 44 44 0 0 1 94 50 Z" 
+        className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-c')?.status || 'NORMAL')} focus:outline-none focus:stroke-slate-100 focus:stroke-[1.5]`} 
+        strokeWidth="0.8" 
+      />
+      
+      <path 
+        onClick={() => setSelectedZoneId('zone-b')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setSelectedZoneId('zone-b');
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Zone B (East Concourse). Status is ${(zones.find(z => z.id === 'zone-b')?.status || 'NORMAL').toLowerCase()}.`}
+        d="M 50 50 L 94 50 A 44 44 0 0 1 50 94 Z" 
+        className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-b')?.status || 'NORMAL')} focus:outline-none focus:stroke-slate-100 focus:stroke-[1.5]`} 
+        strokeWidth="0.8" 
+      />
+      
+      <path 
+        onClick={() => setSelectedZoneId('zone-d')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setSelectedZoneId('zone-d');
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Zone D (South Endzone). Status is ${(zones.find(z => z.id === 'zone-d')?.status || 'NORMAL').toLowerCase()}.`}
+        d="M 50 50 L 50 94 A 44 44 0 0 1 6 50 Z" 
+        className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-d')?.status || 'NORMAL')} focus:outline-none focus:stroke-slate-100 focus:stroke-[1.5]`} 
+        strokeWidth="0.8" 
+      />
+      
+      <path 
+        onClick={() => setSelectedZoneId('zone-a')}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setSelectedZoneId('zone-a');
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Zone A (West Concourse). Status is ${(zones.find(z => z.id === 'zone-a')?.status || 'NORMAL').toLowerCase()}.`}
+        d="M 50 50 L 6 50 A 44 44 0 0 1 50 6 Z" 
+        className={`cursor-pointer transition-all duration-300 ${getZoneFillClass(zones.find(z => z.id === 'zone-a')?.status || 'NORMAL')} focus:outline-none focus:stroke-slate-100 focus:stroke-[1.5]`} 
+        strokeWidth="0.8" 
+      />
+
+      {/* Gate Points */}
+      <circle cx="20" cy="20" r="2.5" fill="#020617" stroke="#3b82f6" strokeWidth="0.8" />
+      <text x="20" y="20.5" fill="#3b82f6" fontSize="2" fontWeight="bold" textAnchor="middle">GA</text>
+
+      <circle cx="80" cy="20" r="2.5" fill="#020617" stroke="#3b82f6" strokeWidth="0.8" />
+      <text x="80" y="20.5" fill="#3b82f6" fontSize="2" fontWeight="bold" textAnchor="middle">GB</text>
+
+      <circle cx="80" cy="80" r="2.8" fill="#020617" stroke="#ef4444" strokeWidth="0.8" />
+      <text x="80" y="80.5" fill="#ef4444" fontSize="2" fontWeight="bold" textAnchor="middle">GC</text>
+      {activeScenario === 'gate-c-surge' && !actionPlanApplied && (
+        <circle cx="80" cy="80" r="4.5" fill="none" stroke="#ef4444" strokeWidth="0.5" className="animate-ping" />
+      )}
+
+      <circle cx="20" cy="80" r="2.5" fill="#020617" stroke="#10b981" strokeWidth="0.8" />
+      <text x="20" y="80.5" fill="#10b981" fontSize="2" fontWeight="bold" textAnchor="middle">GD</text>
+
+      {/* Corridor B2 */}
+      <line x1="68" y1="58" x2="78" y2="68" stroke={activeScenario === 'gate-c-surge' && !actionPlanApplied ? '#ef4444' : '#f59e0b'} strokeWidth="1.2" strokeDasharray="1.5 1" />
+      <text x="76" y="62" fill="#94a3b8" fontSize="1.8" fontWeight="bold">Corridor B2</text>
+
+      {/* Central pitch */}
+      <rect x="36" y="28" width="28" height="44" rx="1.5" fill="#020617" stroke="#475569" strokeWidth="0.8" transform="rotate(45 50 50)" />
+      <line x1="36" y1="50" x2="64" y2="50" stroke="#475569" strokeWidth="0.5" transform="rotate(45 50 50)" />
+      <circle cx="50" cy="50" r="4.5" fill="none" stroke="#475569" strokeWidth="0.5" />
+      <text x="50" y="50.8" fill="#475569" fontSize="2.2" textAnchor="middle">PITCH</text>
+
+      {/* Labels */}
+      <text x="50" y="16" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE C</text>
+      <text x="82" y="51" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE B</text>
+      <text x="50" y="87" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE D</text>
+      <text x="18" y="51" fill="#f8fafc" fontSize="2.8" fontWeight="extrabold" textAnchor="middle">ZONE A</text>
+    </svg>
+  );
+});
+StadiumSchematic.displayName = 'StadiumSchematic';
+
+interface CrowdTrendChartProps {
+  chartData: { name: string; density: number }[];
+}
+
+const CrowdTrendChart = React.memo(({ chartData }: CrowdTrendChartProps) => {
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+        <defs>
+          <linearGradient id="colorDensity" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+          </linearGradient>
+        </defs>
+        <XAxis dataKey="name" stroke="#475569" fontSize={9} tickLine={false} axisLine={false} />
+        <YAxis stroke="#475569" fontSize={9} domain={[0, 100]} tickLine={false} axisLine={false} />
+        <Tooltip 
+          contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', fontSize: '10px' }}
+          labelStyle={{ color: '#94a3b8' }}
+        />
+        <Area type="monotone" dataKey="density" stroke="#3b82f6" strokeWidth={1.5} fillOpacity={1} fill="url(#colorDensity)" />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+});
+CrowdTrendChart.displayName = 'CrowdTrendChart';
 
 export default PulseOps;

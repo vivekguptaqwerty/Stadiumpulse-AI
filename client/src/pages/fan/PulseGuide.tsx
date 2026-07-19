@@ -217,7 +217,7 @@ const PulseGuide: React.FC = () => {
           <ChevronLeft className="h-4 w-4" />
           <span>Landing Page</span>
         </Link>
-        <span className="font-mono text-slate-500">PulseGuide Mobile Client</span>
+        <span className="font-mono text-slate-400">PulseGuide Mobile Client</span>
       </div>
 
       {/* Simulated Smartphone Shell */}
@@ -303,7 +303,7 @@ const PulseGuide: React.FC = () => {
             <div className="text-xs space-y-0.5">
               <div className="text-slate-400 font-medium">MetLife Stadium Location</div>
               <div className="text-white font-semibold">{fanContext.currentLocation} &bull; {fanContext.level}</div>
-              <div className="text-[10px] text-slate-500 font-mono">Seat: {fanContext.seatDetails}</div>
+              <div className="text-[10px] text-slate-400 font-mono">Seat: {fanContext.seatDetails}</div>
             </div>
           </div>
 
@@ -359,7 +359,7 @@ const PulseGuide: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  <span className="text-[9px] text-slate-500 mt-1 mx-1 font-mono">{msg.timestamp}</span>
+                  <span className="text-[9px] text-slate-400 mt-1 mx-1 font-mono">{msg.timestamp}</span>
                 </div>
               ))}
 
@@ -371,7 +371,7 @@ const PulseGuide: React.FC = () => {
                     <span className="h-1.5 w-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
                   </div>
                   {processingStep && (
-                    <span className="text-[9px] text-slate-500 font-mono italic block ml-2 animate-pulse">
+                    <span className="text-[9px] text-slate-400 font-mono italic block ml-2 animate-pulse">
                       {processingStep}
                     </span>
                   )}
@@ -384,7 +384,7 @@ const PulseGuide: React.FC = () => {
           {/* Quick Actions Scroll */}
           {messages.length === 1 && !isTyping && (
             <div className="space-y-2 mt-4">
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest block">Quick Actions</span>
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest block">Quick Actions</span>
               <div className="grid grid-cols-2 gap-2">
                 <button 
                   onClick={() => handleQuickAction("Find my gate", "Take me to Gate C")}
@@ -455,6 +455,7 @@ const PulseGuide: React.FC = () => {
             }}
             className="h-10 w-10 shrink-0 rounded-full bg-slate-800 hover:bg-slate-750 border border-slate-700/60 flex items-center justify-center text-slate-300 transition-colors"
             title="Voice input"
+            aria-label="Activate voice query"
           >
             <Mic className="h-4.5 w-4.5" />
           </button>
@@ -467,11 +468,13 @@ const PulseGuide: React.FC = () => {
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(inputText)}
               placeholder="Ask about gates, facilities, accessibility..."
+              aria-label="Ask a question about the stadium"
               className="w-full h-10 bg-slate-900 border border-slate-700/60 focus:border-brand-primary rounded-full px-4 text-xs text-white focus:outline-none transition-colors pr-10 font-sans"
             />
             <button
               onClick={() => handleSendMessage(inputText)}
               disabled={!inputText.trim()}
+              aria-label="Send message"
               className="absolute right-1 top-1 h-8 w-8 rounded-full bg-brand-primary text-white flex items-center justify-center hover:bg-brand-primary/95 disabled:opacity-30 disabled:hover:bg-brand-primary transition-all"
             >
               <Send className="h-3.5 w-3.5" />

@@ -63,13 +63,33 @@ export const StadiumStateProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Chart data for selected zone trend (last 30 minutes in 5-minute increments)
   const [chartData, setChartData] = useState<{ name: string; density: number }[]>([]);
+  const [isTabVisible, setIsTabVisible] = useState<boolean>(true);
 
   const surgeTimerRef = useRef<any>(null);
   const clockTimerRef = useRef<any>(null);
   const lastFingerprintRef = useRef<string>('');
 
+  // Page Visibility Listener
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabVisible(document.visibilityState === 'visible');
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   // Helper to generate simulated time increments
   useEffect(() => {
+    if (!isTabVisible) {
+      if (clockTimerRef.current) {
+        clearInterval(clockTimerRef.current);
+        clockTimerRef.current = null;
+      }
+      return;
+    }
+
     clockTimerRef.current = setInterval(() => {
       setSimulationTime((prev) => {
         const [h, m, s] = prev.split(':').map(Number);
@@ -90,9 +110,12 @@ export const StadiumStateProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }, 1000);
 
     return () => {
-      if (clockTimerRef.current) clearInterval(clockTimerRef.current);
+      if (clockTimerRef.current) {
+        clearInterval(clockTimerRef.current);
+        clockTimerRef.current = null;
+      }
     };
-  }, []);
+  }, [isTabVisible]);
 
   // Update chart data based on selected zone and crowd density
   useEffect(() => {
@@ -261,6 +284,12 @@ export const StadiumStateProvider: React.FC<{ children: React.ReactNode }> = ({ 
       const statuses: OperationalState[] = ['ELEVATED', 'ELEVATED', 'HIGH', 'CRITICAL'];
 
       const runSurgeStep = () => {
+        if (document.visibilityState === 'hidden') {
+          // Defer the step check by 1s to preserve simulation step timing
+          surgeTimerRef.current = setTimeout(runSurgeStep, 1000);
+          return;
+        }
+
         if (step > densities.length) {
           // Trigger analysis at critical threshold
           runOperationsAnalysis(true);
