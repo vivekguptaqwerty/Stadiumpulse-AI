@@ -70,7 +70,7 @@ graph TD
     PG -->|API POST Request| Express[Express backend API /api/ai]
     Express -->|Resolve Context| Grounding[Grounded Facility Registry]
     Grounding -->|Compile Context Snapshot| GeminiInput[Grounded Prompt Payload]
-    GeminiInput -->|@google/genai SDK Call| Gemini[Gemini 1.5 Flash Model]
+    GeminiInput -->|Google GenAI SDK Call| Gemini[Gemini 1.5 Flash Model]
     Gemini -->|Generate Structured JSON| Parser[JSON Validator / Guardrail]
     Parser -->|Context Injection| Actions[Closed-Loop Router]
     Actions -->|Mitigation Recommendations| OpsPanel[PulseOps Command Center]
